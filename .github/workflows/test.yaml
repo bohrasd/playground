@@ -2,11 +2,11 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [deploy-test]
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/*.yaml'
+  #push:
+    #branches:
+      #- main
+    #paths:
+      #- '.github/workflows/*.yaml'
 
 name: Deploy Test
 
@@ -22,16 +22,12 @@ jobs:
       # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/request-throttling.html
       max-parallel: 20
       matrix:
-        cluster:
-        - "qor5-test"
-        items:
-        - name: "example"
-          service: "qor5-example-test"
-          if: ${{ github.event.client_payload.github != '' && github.event.client_payload.github.example != '' }}
-        - name: "docs"
-          service: "qor5-docs-test"
-          if: ${{ github.event.client_payload.github != '' && github.event.client_payload.github.docs != '' }}
-
+        cluster-name-service:
+        - qor5-test:example:qor5-example-test
+        - qor5-test:docs:qor5-docs-test
+        exclude:
+        - ${{ (github.event.client_payload.github != '' && !contains(github.event.client_payload.github, 'docs')) && 'dummy' || 'qor5-test:docs:qor5-docs-test' }}
+        - ${{ (github.event.client_payload.github != '' && !contains(github.event.client_payload.github, 'example')) && 'dummy' || 'qor5-test:example:qor5-example-test' }}
 
     steps:
     - name: Checkout
@@ -39,12 +35,20 @@ jobs:
 
     - name: Parsing Arguments
       id: parsing-arguments
+      env:
+        CONFIGURATION: ${{ matrix.cluster-name-service }}
       run: |
-        echo "cluster=${{ matrix.cluster }}" >> $GITHUB_OUTPUT
+        CLUSTER=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $1 }')
+        echo "cluster=$CLUSTER" >> $GITHUB_OUTPUT
 
-        echo "app-name=${{ matrix.items.name }}" >> $GITHUB_OUTPUT
+        APP_NAME=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $2 }')
+        echo "app-name=$APP_NAME" >> $GITHUB_OUTPUT
 
-        echo "service-name=${{ matrix.items.service }}" >> $GITHUB_OUTPUT
+        SERVICE_NAME=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $3 }')
+        echo "service-name=$SERVICE_NAME" >> $GITHUB_OUTPUT
+
+        SERVICE_TYPE=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $4 }')
+        echo "service-type=$SERVICE_TYPE" >> $GITHUB_OUTPUT
 
     - name: Image From Client Payload
       id: image-from-client-payload
