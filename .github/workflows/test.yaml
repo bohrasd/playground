@@ -27,8 +27,10 @@ jobs:
         items:
         - name: "example"
           service: "qor5-example-test"
+          if: ${{ github.event.client_payload.github != '' && github.event.client_payload.github.example != '' }}
         - name: "docs"
           service: "qor5-docs-test"
+          if: ${{ github.event.client_payload.github != '' && github.event.client_payload.github.docs != '' }}
 
 
     steps:
@@ -37,8 +39,6 @@ jobs:
 
     - name: Parsing Arguments
       id: parsing-arguments
-      env:
-        CONFIGURATION: ${{ matrix.cluster-name-service }}
       run: |
         echo "cluster=${{ matrix.cluster }}" >> $GITHUB_OUTPUT
 
