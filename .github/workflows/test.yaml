@@ -2,11 +2,11 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [deploy-test]
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/*.yaml'
+  #push:
+    #branches:
+      #- main
+    #paths:
+      #- '.github/workflows/*.yaml'
 
 name: Deploy Test
 
@@ -53,8 +53,6 @@ jobs:
       env:
         APP_NAME: ${{ steps.parsing-arguments.outputs.app-name }}
       run: |
-        echo '${{ steps.parsing-arguments.outputs.app-name }}'
-        echo '${{ fromJson(github.event.client_payload.github) }}'
         echo '${{ toJson(github.event.client_payload.github) }}' > payload.json
         IMAGE=$(jq --arg APP_NAME "$APP_NAME" -r '.[$APP_NAME].image' payload.json)
         echo "image=$IMAGE" >> $GITHUB_OUTPUT
