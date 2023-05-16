@@ -36,8 +36,6 @@ jobs:
 
     - name: Parsing Arguments
       id: parsing-arguments
-      env:
-        CONFIGURATION: ${{ matrix.cluster-name-service }}
       run: |
         echo "cluster=${{ matrix.cluster }}" >> $GITHUB_OUTPUT
 
