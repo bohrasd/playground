@@ -1,0 +1,60 @@
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [deploy-test]
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/*.yaml'
+
+name: Deploy Test
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: test
+
+    strategy:
+      fail-fast: true
+      # Set max parallel to 20 to avoid concurrent register/launch tasks number exceeding the maximum capacity (20 task)
+      # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/request-throttling.html
+      max-parallel: 20
+      matrix:
+        cluster-name-service:
+        - qor5-test:example:qor5-example-test
+        - qor5-test:docs:qor5-docs-test
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Parsing Arguments
+      id: parsing-arguments
+      env:
+        CONFIGURATION: ${{ matrix.cluster-name-service }}
+      run: |
+        CLUSTER=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $1 }')
+        echo "cluster=$CLUSTER" >> $GITHUB_OUTPUT
+
+        APP_NAME=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $2 }')
+        echo "app-name=$APP_NAME" >> $GITHUB_OUTPUT
+
+        SERVICE_NAME=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $3 }')
+        echo "service-name=$SERVICE_NAME" >> $GITHUB_OUTPUT
+
+        SERVICE_TYPE=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $4 }')
+        echo "service-type=$SERVICE_TYPE" >> $GITHUB_OUTPUT
+
+    - name: Image From Client Payload
+      id: image-from-client-payload
+      if: ${{ github.event.client_payload.github != '' }}
+      env:
+        APP_NAME: ${{ steps.parsing-arguments.outputs.app-name }}
+      run: |
+        echo '${{ steps.parsing-arguments.outputs.app-name }}'
+        echo '${{ fromJson(github.event.client_payload.github) }}'
+        echo '${{ toJson(github.event.client_payload.github) }}' > payload.json
+        IMAGE=$(jq --arg APP_NAME "$APP_NAME" -r '.[$APP_NAME].image' payload.json)
+        echo "image=$IMAGE" >> $GITHUB_OUTPUT
