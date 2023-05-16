@@ -2,11 +2,11 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [deploy-test]
-  #push:
-    #branches:
-      #- main
-    #paths:
-      #- '.github/workflows/*.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/*.yaml'
 
 name: Deploy Test
 
@@ -22,9 +22,13 @@ jobs:
       # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/request-throttling.html
       max-parallel: 20
       matrix:
-        cluster-name-service:
-        - qor5-test:example:qor5-example-test
-        - qor5-test:docs:qor5-docs-test
+        cluster: qor5-test
+        name-service:
+        - name: example
+          service: qor5-example-test
+        - name: docs
+          service: qor5-docs-test
+
 
     steps:
     - name: Checkout
@@ -35,17 +39,11 @@ jobs:
       env:
         CONFIGURATION: ${{ matrix.cluster-name-service }}
       run: |
-        CLUSTER=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $1 }')
-        echo "cluster=$CLUSTER" >> $GITHUB_OUTPUT
+        echo "cluster=${{ matrix.cluster }}" >> $GITHUB_OUTPUT
 
-        APP_NAME=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $2 }')
-        echo "app-name=$APP_NAME" >> $GITHUB_OUTPUT
+        echo "app-name=${{ matrix.name }}" >> $GITHUB_OUTPUT
 
-        SERVICE_NAME=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $3 }')
-        echo "service-name=$SERVICE_NAME" >> $GITHUB_OUTPUT
-
-        SERVICE_TYPE=$(echo $CONFIGURATION | awk 'BEGIN { FS = ":" } ; { print $4 }')
-        echo "service-type=$SERVICE_TYPE" >> $GITHUB_OUTPUT
+        echo "service-name=${{ matrix.service }}" >> $GITHUB_OUTPUT
 
     - name: Image From Client Payload
       id: image-from-client-payload
