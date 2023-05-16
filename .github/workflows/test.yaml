@@ -26,8 +26,8 @@ jobs:
         - qor5-test:example:qor5-example-test
         - qor5-test:docs:qor5-docs-test
         exclude:
-        - ${{ (github.event.client_payload.github != '' && !contains(github.event.client_payload.github, 'docs')) && 'dummy' || 'qor5-test:docs:qor5-docs-test' }}
-        - ${{ (github.event.client_payload.github != '' && !contains(github.event.client_payload.github, 'example')) && 'dummy' || 'qor5-test:example:qor5-example-test' }}
+        - cluster-name-service: ${{ (github.event.client_payload.github != '' && !contains(github.event.client_payload.github, 'docs')) && 'dummy' || 'qor5-test:docs:qor5-docs-test' }}
+        - cluster-name-service: ${{ (github.event.client_payload.github != '' && !contains(github.event.client_payload.github, 'example')) && 'dummy' || 'qor5-test:example:qor5-example-test' }}
 
     steps:
     - name: Checkout
