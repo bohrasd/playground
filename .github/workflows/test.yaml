@@ -22,12 +22,12 @@ jobs:
       # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/request-throttling.html
       max-parallel: 20
       matrix:
-        cluster: qor5-test
-        name-service:
         - name: example
           service: qor5-example-test
+          cluster: qor5-test
         - name: docs
           service: qor5-docs-test
+          cluster: qor5-test
 
 
     steps:
