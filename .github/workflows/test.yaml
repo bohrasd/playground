@@ -22,12 +22,12 @@ jobs:
       # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/request-throttling.html
       max-parallel: 20
       matrix:
-        - name: example
-          service: qor5-example-test
-          cluster: qor5-test
-        - name: docs
-          service: qor5-docs-test
-          cluster: qor5-test
+        cluster: "qor5-test"
+        items:
+        - name: "example"
+          service: "qor5-example-test"
+        - name: "docs"
+          service: "qor5-docs-test"
 
 
     steps:
@@ -36,12 +36,14 @@ jobs:
 
     - name: Parsing Arguments
       id: parsing-arguments
+      env:
+        CONFIGURATION: ${{ matrix.cluster-name-service }}
       run: |
         echo "cluster=${{ matrix.cluster }}" >> $GITHUB_OUTPUT
 
-        echo "app-name=${{ matrix.name }}" >> $GITHUB_OUTPUT
+        echo "app-name=${{ matrix.items.name }}" >> $GITHUB_OUTPUT
 
-        echo "service-name=${{ matrix.service }}" >> $GITHUB_OUTPUT
+        echo "service-name=${{ matrix.items.service }}" >> $GITHUB_OUTPUT
 
     - name: Image From Client Payload
       id: image-from-client-payload
