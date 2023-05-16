@@ -54,5 +54,6 @@ jobs:
         APP_NAME: ${{ steps.parsing-arguments.outputs.app-name }}
       run: |
         echo '${{ toJson(github.event.client_payload.github) }}' > payload.json
+        echo '${{ steps.parsing-arguments.outputs.app-name }}'
         IMAGE=$(jq --arg APP_NAME "$APP_NAME" -r '.[$APP_NAME].image' payload.json)
         echo "image=$IMAGE" >> $GITHUB_OUTPUT
